@@ -1,5 +1,9 @@
 pipeline{
     agent any
+    tool {
+        maven 'maven'
+        jdk 'jdk21'
+    }
     enviroment {
         TAg = ${env.BUILD_NUMBER}
         image = docker.io/chumaedeogu/app1
