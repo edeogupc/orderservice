@@ -1,4 +1,6 @@
-pipeline{
+
+
+gitpipeline{
     agent any
     tools{
         maven "maven3"
@@ -17,6 +19,7 @@ pipeline{
         }
         stage "build"{
             steps{
+                docker login -u $DOCKER_USER -p $DOCKER_TOKEN
                 docker -t myapp:${BUILD_NUMBER} .
                 docker tag myapp:$(BUILD_NUMBER) ${MYGIT}/myapp:${BUILD_NUMBER}
                 docker push ${MYGIT}/myapp:${BUILD_NUMBER}
