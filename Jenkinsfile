@@ -1,31 +1,35 @@
-
-
-gitpipeline{
+pipeline{
     agent any
-    tools{
-        maven "maven3"
-        jdk "jdk21"
+    enviroment {
+        TAg = ${env.BUILD_NUMBER}
+        image = docker.io/chumaedeogu/app1
     }
-    enriornment{
-        MYGIT = "chumaedeogu"
-
+    tools {
+        maven = tool 'maven'
+        jdk = tool 'jdk'
+    
     }
-    stages{
-        stage"clean up"{
-            steps{
-                cleanWs()
-            }
-        
-        }
-        stage "build"{
-            steps{
-                docker login -u $DOCKER_USER -p $DOCKER_TOKEN
-                docker -t myapp:${BUILD_NUMBER} .
-                docker tag myapp:$(BUILD_NUMBER) ${MYGIT}/myapp:${BUILD_NUMBER}
-                docker push ${MYGIT}/myapp:${BUILD_NUMBER}
-
+     
+     stages{
+        stage('Build') {
+            steps {
+                sh 'mvn clean package -DskipTests'
             }
         }
+        stage('Docker Build') {
+            steps {
+                sh "docker build -t ${image}:${TAG} ."
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKERHUB_USERNAME', passwordVariable: 'DOCKERHUB_PASSWORD')]) {
+                    sh "echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_USERNAME --password-stdin"
+                    sh "docker push ${image}:${TAG}"
+                }
+            }
+        }
 
-    }
+     }
+
 }
